@@ -1,0 +1,38 @@
+{
+  "name": "authentication",
+  "version": "1.0.0",
+  "main": "./build/app.js",
+  "scripts": {
+    "build:watch": "npx tsc -w",
+    "build": "npx tsc",
+    "dev": "node --watch ./build/app.js",
+    "prod": "node ./build/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/config": "^3.3.5",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^22.14.0",
+    "@types/nodemailer": "^6.4.17",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@typegoose/typegoose": "^12.14.0",
+    "argon2": "^0.41.1",
+    "config": "^3.3.12",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "mongoose": "^8.13.2",
+    "nanoid": "^5.1.5",
+    "nodemailer": "^6.10.0",
+    "winston": "^3.17.0"
+  }
+}
