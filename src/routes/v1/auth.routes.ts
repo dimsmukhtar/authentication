@@ -2,7 +2,7 @@ import { Router } from "express"
 
 const router = Router()
 
-router.use("/", (req, res) => {
+router.use("/register", (req, res) => {
   res.send("auth")
 })
 
