@@ -7,8 +7,12 @@ async function connectToDb() {
     await mongoose.connect(dbURL)
     logger.info("MongoDB Connected")
   } catch (error) {
-    console.log(error)
-    process.exit(1)
+    if (error instanceof Error) {
+      logger.error(error.message)
+    } else {
+      logger.error("Unknown error occurred during database connection")
+      console.log("Raw error: ", error)
+    }
   }
 }
 
