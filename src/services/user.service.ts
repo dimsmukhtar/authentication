@@ -4,7 +4,7 @@ export function createUser(input: Partial<User>) {
   return UserModel.create(input)
 }
 
-export function verifyEmail(email: string) {
+export function findByEmail(email: string) {
   return UserModel.findOne({
     email,
     // verificationCode,

@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express"
-import { CreateUserInput, VerifyUserInput } from "../schema/user.schema"
-import { createUser, verifyEmail } from "../services/user.service"
+import { CreateUserInput, VerifyUserInput, ForgotPasswordInput } from "../schema/user.schema"
+import { createUser, findByEmail } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
 import sendEmail from "../utils/mailer"
 import { toJakartaTime } from "../utils/time"
+import { nanoid } from "nanoid"
 
 export async function createUserHandler(
   req: Request<{}, {}, CreateUserInput>,
@@ -76,7 +77,7 @@ export async function verifyUserHandler(
   next: NextFunction
 ) {
   try {
-    const user = await verifyEmail(req.body.email)
+    const user = await findByEmail(req.body.email)
     if (!user) {
       return next(new AppError("User with that email not found", 400))
     }
@@ -93,7 +94,60 @@ export async function verifyUserHandler(
     user.verificationCode = null
     user.verificationCodeExpiresAt = null
     await user.save()
-    successResponse<typeof user>(res, "Verify user success", user, 200)
+    successResponse(res, "Verify user success")
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
+
+export async function forgotPasswordHandler(
+  req: Request<{}, {}, ForgotPasswordInput>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const user = await findByEmail(req.body.email)
+    if (!user) {
+      return next(new AppError("User with that email not found", 404))
+    }
+    if (!user.verified) {
+      return next(new AppError("User not verified", 400))
+    }
+
+    const passwordResetCode = nanoid()
+    user.passwordResetCode = passwordResetCode
+    user.passwordResetCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000)
+    await user.save()
+
+    await sendEmail({
+      email: user.email,
+      subject: "Password Reset",
+      html: `
+    <html>
+    <head>
+      <title>Password Reset</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(to right, #5f6FFF, #5f6FFF); padding: 20px; text-align: center;">
+        <h1 style="color: white; margin: 0;">Password Reset</h1>
+      </div>
+      <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <p>Hello,</p>
+        <p>We received a request to reset your password.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <p>Your password reset code is: ${passwordResetCode}</p>
+          <p>Please use the code above to reset your password, it will expire in 15 minutes..</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
+          <p>If you did not create an account with us, please ignore this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `,
+    })
+
+    successResponse<typeof user>(res, "Password reset code has been sent to your email")
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }

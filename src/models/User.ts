@@ -1,6 +1,7 @@
 import {
   DocumentType,
   getModelForClass,
+  index,
   modelOptions,
   pre,
   prop,
@@ -18,6 +19,7 @@ import logger from "../utils/logger"
   this.password = hash
   return
 })
+@index({ email: 1 }) // for finding data by email and the performance is good
 @modelOptions({
   schemaOptions: {
     timestamps: true, // added updatedAt and createdAt to model
@@ -47,6 +49,9 @@ export class User {
 
   @prop()
   passwordResetCode: string | null
+
+  @prop()
+  passwordResetCodeExpiresAt: Date | null
 
   @prop({ default: false })
   verified: boolean
