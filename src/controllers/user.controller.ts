@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express"
-import { CreateUserInput } from "../schema/user.schema"
+import { CreateUserInput, VerifyUserInput } from "../schema/user.schema"
 import { createUser, verifyEmail } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
@@ -70,7 +70,11 @@ export async function createUserHandler(
   }
 }
 
-export async function verifyUserHandler(req: Request, res: Response, next: NextFunction) {
+export async function verifyUserHandler(
+  req: Request<{}, {}, VerifyUserInput>,
+  res: Response,
+  next: NextFunction
+) {
   try {
     const user = await verifyEmail(req.body.email, req.body.verificationCode)
     if (!user) {

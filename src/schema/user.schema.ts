@@ -23,5 +23,17 @@ export const createUserSchema = object({
   }),
 })
 
+export const verifyUserSchema = object({
+  body: object({
+    email: string({
+      required_error: "Email is required",
+    }).email("Please input a valid email"),
+    verificationCode: string({
+      required_error: "Verification code is required",
+    }),
+  }),
+})
+
 // interface/alias from zod
 export type CreateUserInput = TypeOf<typeof createUserSchema>["body"]
+export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["body"]
