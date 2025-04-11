@@ -30,6 +30,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "moment-timezone": "^0.5.48",
     "mongoose": "^8.13.2",
     "nanoid": "^5.1.5",
     "nodemailer": "^6.10.0",

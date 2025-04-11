@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express"
 import { CreateUserInput } from "../schema/user.schema"
-import { createUser } from "../services/user.service"
+import { createUser, verifyEmail } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
 import sendEmail from "../utils/mailer"
+import { toJakartaTime } from "../utils/time"
 
 export async function createUserHandler(
   req: Request<{}, {}, CreateUserInput>,
@@ -11,7 +12,10 @@ export async function createUserHandler(
   next: NextFunction
 ) {
   try {
-    const user = await createUser(req.body)
+    const user = await createUser({
+      ...req.body,
+      verificationCodeExpiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+    })
     await sendEmail({
       email: user.email,
       subject: "Verify your account",
@@ -32,23 +36,52 @@ export async function createUserHandler(
     <div style="text-align: center; margin: 30px 0;">
       <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #5f6FFF;">${user.verificationCode}</span>
     </div>
-    <p>Please use the code above to verify your account.</p>
+    <p>Please use the code above to verify your account, it will expire in 15 minutes.</p>
     <p>If you did not create an account with us, please ignore this email.</p>
     <p>Best regards,<br>The Team</p>
   </div>
   <div style="text-align: center; margin-top: 20px; color: #888; font-size: 0.8em;">
     <p>
-Ini adalah pesan otomatis, mohon jangan membalas email ini.</p>
+      If you did not create an account with us, please ignore this email.</p>
   </div>
 </body>
 </html>,`,
     })
-    successResponse<typeof user>(res, "Create user success", user, 201)
+    const userResponse = {
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      verified: user.verified,
+      verificationCode: toJakartaTime(user.verificationCodeExpiresAt),
+    }
+    successResponse<typeof userResponse>(
+      res,
+      "Create user success, verification code has been sent to your email",
+      userResponse,
+      201
+    )
   } catch (error: any) {
     if (error.code === 11000) {
       // unique constraint error
       return next(new AppError("Account already exist", 409))
     }
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
+
+export async function verifyUserHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const user = await verifyEmail(req.body.email, req.body.verificationCode)
+    if (!user) {
+      return next(new AppError("Invalid verification code or code is expired", 400))
+    }
+    user.verified = true
+    user.verificationCode = null
+    user.verificationCodeExpiresAt = null
+    await user.save()
+    successResponse<typeof user>(res, "Verify user success", user, 200)
+  } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }
 }
