@@ -4,10 +4,10 @@ export function createUser(input: Partial<User>) {
   return UserModel.create(input)
 }
 
-export function verifyEmail(email: string, verificationCode: string) {
+export function verifyEmail(email: string) {
   return UserModel.findOne({
     email,
-    verificationCode,
-    verificationCodeExpiresAt: { $gt: new Date() },
+    // verificationCode,
+    // verificationCodeExpiresAt: { $gt: new Date() },
   })
 }

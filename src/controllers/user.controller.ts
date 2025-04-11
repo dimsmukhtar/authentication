@@ -76,9 +76,18 @@ export async function verifyUserHandler(
   next: NextFunction
 ) {
   try {
-    const user = await verifyEmail(req.body.email, req.body.verificationCode)
+    const user = await verifyEmail(req.body.email)
     if (!user) {
-      return next(new AppError("Invalid verification code or code is expired", 400))
+      return next(new AppError("User with that email not found", 400))
+    }
+    if (user.verified) {
+      return next(new AppError("User already verified", 400))
+    }
+    if (user?.verificationCodeExpiresAt && user.verificationCodeExpiresAt < new Date()) {
+      return next(new AppError("Verification code expired", 400))
+    }
+    if (user.verificationCode !== req.body.verificationCode) {
+      return next(new AppError("Invalid verification code", 400))
     }
     user.verified = true
     user.verificationCode = null
