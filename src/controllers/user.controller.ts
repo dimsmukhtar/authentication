@@ -1,5 +1,10 @@
 import { NextFunction, Request, Response } from "express"
-import { CreateUserInput, VerifyUserInput, ForgotPasswordInput } from "../schema/user.schema"
+import {
+  CreateUserInput,
+  VerifyUserInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from "../schema/user.schema"
 import { createUser, findByEmail } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
@@ -54,7 +59,7 @@ export async function createUserHandler(
       firstName: user.firstName,
       lastName: user.lastName,
       verified: user.verified,
-      verificationCode: toJakartaTime(user.verificationCodeExpiresAt),
+      verificationCodeExpiresAt: toJakartaTime(user.verificationCodeExpiresAt),
     }
     successResponse<typeof userResponse>(
       res,
@@ -114,6 +119,10 @@ export async function forgotPasswordHandler(
       return next(new AppError("User not verified", 400))
     }
 
+    if (user.passwordResetCodeExpiresAt && user.passwordResetCodeExpiresAt > new Date()) {
+      return next(new AppError("Password reset code already sent", 400))
+    }
+
     const passwordResetCode = nanoid()
     user.passwordResetCode = passwordResetCode
     user.passwordResetCodeExpiresAt = new Date(Date.now() + 15 * 60 * 1000)
@@ -147,7 +156,48 @@ export async function forgotPasswordHandler(
     `,
     })
 
-    successResponse<typeof user>(res, "Password reset code has been sent to your email")
+    const response = {
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      verified: user.verified,
+      passwordResetCodeExpiresAt: toJakartaTime(user.passwordResetCodeExpiresAt),
+    }
+
+    successResponse<typeof response>(
+      res,
+      "Password reset code has been sent to your email",
+      response
+    )
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
+
+export async function resetPasswordHandler(
+  req: Request<{}, {}, ResetPasswordInput>,
+  res: Response,
+  next: NextFunction
+) {
+  const { email, password, passwordResetCode } = req.body
+  try {
+    const user = await findByEmail(email)
+    if (!user) {
+      return next(new AppError("User with that email not found", 404))
+    }
+    if (user.passwordResetCodeExpiresAt && user.passwordResetCodeExpiresAt < new Date()) {
+      return next(new AppError("Password reset code expired", 400))
+    }
+    if (user.passwordResetCode !== passwordResetCode) {
+      return next(new AppError("Invalid password reset code", 400))
+    }
+    user.password = password
+    user.passwordResetCode = null
+    user.passwordResetCodeExpiresAt = null
+    await user.save()
+
+    successResponse(res, "Reset password success")
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }

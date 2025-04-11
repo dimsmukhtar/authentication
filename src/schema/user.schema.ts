@@ -42,7 +42,28 @@ export const forgotPasswordSchema = object({
   }),
 })
 
+export const resetPasswordSchema = object({
+  body: object({
+    email: string({
+      required_error: "Email is required",
+    }).email("Please input a valid email"),
+    password: string({
+      required_error: "Password is required",
+    }).min(6, "Password minimum is 6 char"),
+    passwordResetCode: string({
+      required_error: "Password reset code is required",
+    }),
+    passwordConfirmation: string({
+      required_error: "Password confirmation is required",
+    }),
+  }).refine((data) => data.password === data.passwordConfirmation, {
+    message: "Password do not match",
+    path: ["passwordConfirmation"],
+  }),
+})
+
 // interface/alias from zod
 export type CreateUserInput = TypeOf<typeof createUserSchema>["body"]
 export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["body"]
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>["body"]
+export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>["body"]
