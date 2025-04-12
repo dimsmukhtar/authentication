@@ -12,9 +12,6 @@ export default function errorHandler(
   next: NextFunction
 ): void {
   err.statusCode = err.statusCode || 500
-  if (process.env.NODE_ENV === "DEVELOPMENT") {
-    console.log(err.stack)
-  }
   res.status(err.statusCode).json({
     success: false,
     message: err.message,

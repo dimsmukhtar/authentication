@@ -18,7 +18,7 @@ export async function createSessionHandler(
       return next(new AppError("User with that email not found", 404))
     }
     if (!user.verified) {
-      return next(new AppError("Please not verified", 400))
+      return next(new AppError("Your not verified", 400))
     }
 
     const isValid = await user.validatePassword(password)

@@ -21,7 +21,6 @@ type UserRole = "user" | "admin"
   this.password = hash
   return
 })
-@index({ email: 1 }) // for finding data by email and the performance is good
 @modelOptions({
   schemaOptions: {
     timestamps: true, // added updatedAt and createdAt to model
