@@ -47,13 +47,13 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
       return next(new AppError("Could not find refresh token", 401))
     }
 
-    const decoded = verifyJwtToken<{ _id: string }>(refreshToken, "refreshTokenPublicKey")
+    const decoded = verifyJwtToken<{ sessionId: string }>(refreshToken, "refreshTokenPublicKey")
 
     if (!decoded) {
       return next(new AppError("Invalid refresh token", 401))
     }
 
-    const session = await findSessionById(decoded._id)
+    const session = await findSessionById(decoded.sessionId)
     if (!session || !session.valid) {
       return next(new AppError("Could not refresh access token", 401))
     }
