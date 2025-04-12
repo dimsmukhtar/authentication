@@ -15,7 +15,7 @@ import {
 
 const router = Router()
 
-router.post("/", validateResource(createUserSchema), createUserHandler)
+router.post("/register", validateResource(createUserSchema), createUserHandler)
 router.post("/verify", validateResource(verifyUserSchema), verifyUserHandler)
 router.post("/forgotpassword", validateResource(forgotPasswordSchema), forgotPasswordHandler)
 router.post("/resetpassword", validateResource(resetPasswordSchema), resetPasswordHandler)

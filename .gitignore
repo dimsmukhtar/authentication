@@ -17,3 +17,6 @@ node_modules# dependencies
 
 # env
 .env
+
+# keys
+keys/*.pem
