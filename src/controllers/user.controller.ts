@@ -11,7 +11,6 @@ import AppError from "../utils/appError"
 import sendEmail from "../utils/mailer"
 import { toJakartaTime } from "../utils/time"
 import { nanoid } from "nanoid"
-import { UserPayload } from "../types/UserPayload"
 
 export async function createUserHandler(
   req: Request<{}, {}, CreateUserInput>,
@@ -206,8 +205,8 @@ export async function resetPasswordHandler(
 
 export async function meHandler(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user as UserPayload
-    successResponse<UserPayload>(res, "Success", user)
+    const user = req.user
+    successResponse<typeof user>(res, "Success", user)
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }

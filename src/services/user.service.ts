@@ -11,3 +11,7 @@ export function findByEmail(email: string) {
     // verificationCodeExpiresAt: { $gt: new Date() },
   })
 }
+
+export function findById(id: string) {
+  return UserModel.findById(id)
+}
