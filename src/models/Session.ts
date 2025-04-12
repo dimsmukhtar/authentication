@@ -3,7 +3,7 @@ import { User } from "./User"
 
 export class Session {
   @prop({ ref: () => User })
-  user: Ref<User>
+  userId: Ref<User>
 
   @prop({ default: true })
   valid: boolean
