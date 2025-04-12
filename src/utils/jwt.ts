@@ -16,4 +16,17 @@ export function signJwt(
   })
 }
 
+export function verifyJwtToken<T>(
+  token: string,
+  keyName: "accessTokenPublicKey" | "refreshTokenPublicKey"
+): T | null {
+  const publicKey = getKey(keyName)
+  try {
+    const decoded = jwt.verify(token, publicKey) as T
+    return decoded
+  } catch (error) {
+    return null
+  }
+}
+
 export function verifyJwt() {}
