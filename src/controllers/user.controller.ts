@@ -212,3 +212,13 @@ export async function meHandler(req: Request, res: Response, next: NextFunction)
     return next(new AppError(error.message, error.statusCode))
   }
 }
+
+export async function logoutHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    res.clearCookie("accessToken")
+    res.clearCookie("refreshToken")
+    successResponse(res, "Logout success")
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
