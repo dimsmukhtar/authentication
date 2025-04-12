@@ -11,6 +11,8 @@ import { nanoid } from "nanoid"
 import argon2 from "argon2"
 import logger from "../utils/logger"
 
+type UserRole = "user" | "admin"
+
 @pre<User>("save", async function () {
   if (!this.isModified("password")) {
     return
@@ -40,6 +42,9 @@ export class User {
 
   @prop({ required: true })
   password: string
+
+  @prop({ type: String, enum: ["user", "admin"], default: "user" })
+  role: UserRole
 
   @prop({ default: () => nanoid() })
   verificationCode: string | null

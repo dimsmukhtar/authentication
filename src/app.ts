@@ -1,5 +1,7 @@
 import express from "express"
 import "dotenv/config"
+import cookieParser from "cookie-parser"
+import cors from "cors"
 
 import routes from "./routes"
 import connectToDb from "./utils/connectToDb"
@@ -10,6 +12,13 @@ const PORT = process.env.PORT
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+)
+app.use(cookieParser())
 
 app.use("/api", routes)
 

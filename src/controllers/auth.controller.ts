@@ -4,6 +4,7 @@ import AppError from "../utils/appError"
 import { findByEmail } from "../services/user.service"
 import { signAccessToken, signRefreshToken } from "../services/auth.service"
 import { successResponse } from "../middlewares/successResponse"
+import { setAccessToken, setRefreshToken } from "../utils/setCookies"
 
 export async function createSessionHandler(
   req: Request<{}, {}, CreateSessionInput>,
@@ -28,11 +29,10 @@ export async function createSessionHandler(
 
     const accessToken = signAccessToken(user)
     const refreshToken = await signRefreshToken(user._id.toString())
+    setAccessToken(accessToken, res)
+    setRefreshToken(refreshToken, res)
 
-    successResponse<{ accessToken: string; refreshToken: string }>(res, "Login success", {
-      accessToken,
-      refreshToken,
-    })
+    successResponse(res, "Login success")
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }

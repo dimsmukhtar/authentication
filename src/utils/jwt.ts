@@ -28,5 +28,3 @@ export function verifyJwtToken<T>(
     return null
   }
 }
-
-export function verifyJwt() {}

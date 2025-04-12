@@ -20,6 +20,7 @@ export function signAccessToken(user: DocumentType<User>) {
     lastName: user.lastName,
     email: user.email,
     verified: user.verified,
+    role: user.role,
   }
   const accessToken = signJwt(payloadUser, "accessTokenPrivateKey")
   return accessToken
