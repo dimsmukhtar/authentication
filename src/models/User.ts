@@ -1,7 +1,6 @@
 import {
   DocumentType,
   getModelForClass,
-  index,
   modelOptions,
   pre,
   prop,
@@ -31,36 +30,36 @@ type UserRole = "user" | "admin"
 })
 export class User {
   @prop({ lowercase: true, required: true, unique: true })
-  email: string
+  email!: string
 
   @prop({ required: true })
-  firstName: string
+  firstName!: string
 
   @prop({ required: true })
-  lastName: string
+  lastName!: string
 
   @prop({ required: true })
-  password: string
+  password!: string
 
   @prop({ type: String, enum: ["user", "admin"], default: "user" })
-  role: UserRole
+  role!: UserRole
 
   @prop({ default: () => nanoid() })
-  verificationCode: string | null
+  verificationCode!: string | null
 
   @prop()
-  verificationCodeExpiresAt: Date | null
+  verificationCodeExpiresAt?: Date | null
 
   @prop()
-  passwordResetCode: string | null
+  passwordResetCode?: string | null
 
   @prop()
-  passwordResetCodeExpiresAt: Date | null
+  passwordResetCodeExpiresAt?: Date | null
 
   @prop({ default: false })
-  verified: boolean
+  verified!: boolean
 
-  async validatePassword(this: DocumentType<User>, rawPassword: string) {
+  async validatePassword(this: DocumentType<User>, rawPassword: string): Promise<boolean> {
     try {
       return await argon2.verify(this.password, rawPassword)
     } catch (error) {
@@ -70,6 +69,7 @@ export class User {
         logger.error("Unknown error occurred during validate password")
         console.log("Raw error: ", error)
       }
+      return false
     }
   }
 }
