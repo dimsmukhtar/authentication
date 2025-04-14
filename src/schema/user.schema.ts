@@ -64,7 +64,7 @@ export const resetPasswordSchema = object({
 
 export const changePasswordSchema = object({
   body: object({
-    password: string({
+    oldPassword: string({
       required_error: "Password is required",
     }).min(6, "Password minimum is 6 char"),
     newPassword: string({

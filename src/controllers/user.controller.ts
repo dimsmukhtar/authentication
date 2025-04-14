@@ -254,3 +254,32 @@ export async function updateMeHandler(
     return next(new AppError(error.message, error.statusCode))
   }
 }
+
+export async function changePasswordHandler(
+  req: Request<{}, {}, ChangePasswordInput>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { oldPassword, newPassword, newPasswordConfirmation } = req.body
+    const user = await findByEmail(req.user?.email as string)
+    if (!user) {
+      return next(new AppError("User not found", 404))
+    }
+
+    const isValid = await user.validatePassword(oldPassword)
+    if (!isValid) {
+      return next(new AppError("Invalid old password", 400))
+    }
+
+    const updatedUser = await updateMe(user._id.toString(), { password: newPassword })
+
+    if (!updatedUser) {
+      return next(new AppError("Error changing new password", 500))
+    }
+
+    successResponse(res, "Change password success")
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
