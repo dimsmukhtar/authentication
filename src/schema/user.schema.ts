@@ -62,6 +62,23 @@ export const resetPasswordSchema = object({
   }),
 })
 
+export const changePasswordSchema = object({
+  body: object({
+    password: string({
+      required_error: "Password is required",
+    }).min(6, "Password minimum is 6 char"),
+    newPassword: string({
+      required_error: "New password is required",
+    }).min(6, "Password minimum is 6 char"),
+    newPasswordConfirmation: string({
+      required_error: "New password confirmation is required",
+    }),
+  }).refine((data) => data.newPassword === data.newPasswordConfirmation, {
+    message: "New password and new password confirmation do not match",
+    path: ["newPasswordConfirmation"],
+  }),
+})
+
 export const updateMeSchema = object({
   body: object({
     firstName: string().optional(),
@@ -76,3 +93,4 @@ export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["body"]
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>["body"]
 export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>["body"]
 export type UpdateMeInput = TypeOf<typeof updateMeSchema>["body"]
+export type ChangePasswordInput = TypeOf<typeof changePasswordSchema>["body"]

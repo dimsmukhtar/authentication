@@ -5,6 +5,7 @@ import {
   ForgotPasswordInput,
   ResetPasswordInput,
   UpdateMeInput,
+  ChangePasswordInput,
 } from "../schema/user.schema"
 import { createUser, findByEmail, updateMe } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
