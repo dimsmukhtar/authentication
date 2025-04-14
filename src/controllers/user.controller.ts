@@ -247,7 +247,6 @@ export async function updateMeHandler(
       firstName: updatedUser.firstName,
       lastName: updatedUser.lastName,
       verified: updatedUser.verified,
-      // Tambahkan field lain yang ingin Anda tampilkan
     }
     successResponse(res, "Update me success", userResponse)
   } catch (error: any) {
