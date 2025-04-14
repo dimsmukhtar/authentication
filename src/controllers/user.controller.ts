@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express"
+import argon2 from "argon2"
 import {
   CreateUserInput,
   VerifyUserInput,
@@ -7,7 +8,7 @@ import {
   UpdateMeInput,
   ChangePasswordInput,
 } from "../schema/user.schema"
-import { createUser, findByEmail, updateMe } from "../services/user.service"
+import { createUser, findByEmail, findById, updateMe } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
 import sendEmail from "../utils/mailer"
@@ -213,8 +214,18 @@ export async function resetPasswordHandler(
 
 export async function meHandler(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = req.user
-    successResponse<typeof user>(res, "Success", user)
+    const user = await findById(req.user?._id as string)
+    if (!user) {
+      return next(new AppError("User not found", 404))
+    }
+    const userResponse = {
+      _id: user._id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      verified: user.verified,
+    }
+    successResponse<typeof userResponse>(res, "Success", userResponse)
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }
@@ -272,7 +283,9 @@ export async function changePasswordHandler(
       return next(new AppError("Invalid old password", 400))
     }
 
-    const updatedUser = await updateMe(user._id.toString(), { password: newPassword })
+    const hashedPassword = await argon2.hash(newPassword)
+
+    const updatedUser = await updateMe(user._id.toString(), { password: hashedPassword })
 
     if (!updatedUser) {
       return next(new AppError("Error changing new password", 500))

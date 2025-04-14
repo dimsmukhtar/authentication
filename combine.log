@@ -1,1 +1,5 @@
 2025-04-11 00:23:58 : info : MongoDB Connected
+2025-04-14T12:11:12+07:00 : error : pchstr must contain a $ as first char
+2025-04-14T12:11:12+07:00 : error : pchstr must contain a $ as first char
+2025-04-14T12:11:12+07:00 : error : pchstr must contain a $ as first char
+2025-04-14T12:15:59+07:00 : error : pchstr must contain a $ as first char

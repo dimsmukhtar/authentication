@@ -42,6 +42,11 @@ export async function createSessionHandler(
 export async function refreshTokenHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const refreshToken = req.cookies.refreshToken
+    const isAccessTokenExist = req.cookies.accessToken
+
+    if (isAccessTokenExist) {
+      return next(new AppError("You are already logged in", 401))
+    }
 
     if (!refreshToken) {
       return next(new AppError("Could not find refresh token", 401))
