@@ -62,8 +62,17 @@ export const resetPasswordSchema = object({
   }),
 })
 
+export const updateMeSchema = object({
+  body: object({
+    firstName: string().optional(),
+    lastName: string().optional(),
+    email: string().email("Please input a valid email").optional(),
+  }),
+})
+
 // interface/alias from zod
 export type CreateUserInput = TypeOf<typeof createUserSchema>["body"]
 export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["body"]
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>["body"]
 export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>["body"]
+export type UpdateMeInput = TypeOf<typeof updateMeSchema>["body"]

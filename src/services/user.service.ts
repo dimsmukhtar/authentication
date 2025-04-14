@@ -15,3 +15,7 @@ export function findByEmail(email: string) {
 export function findById(id: string) {
   return UserModel.findById(id)
 }
+
+export function updateMe(userId: string, data: Partial<User>) {
+  return UserModel.findOneAndUpdate({ _id: userId }, data, { new: true })
+}

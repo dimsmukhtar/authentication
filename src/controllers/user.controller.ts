@@ -4,8 +4,9 @@ import {
   VerifyUserInput,
   ForgotPasswordInput,
   ResetPasswordInput,
+  UpdateMeInput,
 } from "../schema/user.schema"
-import { createUser, findByEmail } from "../services/user.service"
+import { createUser, findByEmail, updateMe } from "../services/user.service"
 import { successResponse } from "../middlewares/successResponse"
 import AppError from "../utils/appError"
 import sendEmail from "../utils/mailer"
@@ -53,13 +54,19 @@ export async function createUserHandler(
 </body>
 </html>,`,
     })
+
+    let verificationCodeExpiresAtJakarta: string | Date | null = null
+    if (user.verificationCodeExpiresAt) {
+      verificationCodeExpiresAtJakarta = toJakartaTime(user.verificationCodeExpiresAt)
+    }
+
     const userResponse = {
       _id: user._id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       verified: user.verified,
-      verificationCodeExpiresAt: toJakartaTime(user.verificationCodeExpiresAt),
+      verificationCodeExpiresAt: verificationCodeExpiresAtJakarta,
     }
     successResponse<typeof userResponse>(
       res,
@@ -217,6 +224,20 @@ export async function logoutHandler(req: Request, res: Response, next: NextFunct
     res.clearCookie("accessToken")
     res.clearCookie("refreshToken")
     successResponse(res, "Logout success")
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
+
+export async function updateMeHandler(
+  req: Request<{}, {}, UpdateMeInput>,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const { firstName, lastName, email } = req.body
+    const user = await updateMe(req.user?._id as string, { firstName, lastName, email })
+    successResponse(res, "Update me success", user)
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }
