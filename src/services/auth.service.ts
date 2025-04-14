@@ -8,6 +8,10 @@ export async function createSession(userId: string) {
   return SessionModel.create({ userId: userId })
 }
 
+export async function updateSessionById(id: string, valid: boolean) {
+  return SessionModel.findByIdAndUpdate(id, { valid }, { new: true })
+}
+
 export async function signRefreshToken(userId: string) {
   const session = await createSession(userId)
   const refreshToken = signJwt({ sessionId: session._id }, "refreshTokenPrivateKey", {

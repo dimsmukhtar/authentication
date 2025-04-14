@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from "express"
 import { CreateSessionInput } from "../schema/auth.schema"
 import AppError from "../utils/appError"
 import { findByEmail, findById } from "../services/user.service"
-import { signAccessToken, signRefreshToken, findSessionById } from "../services/auth.service"
+import {
+  signAccessToken,
+  signRefreshToken,
+  findSessionById,
+  updateSessionById,
+} from "../services/auth.service"
 import { successResponse } from "../middlewares/successResponse"
 import { setAccessToken, setRefreshToken } from "../utils/setCookies"
 import { verifyJwtToken } from "../utils/jwt"
@@ -42,11 +47,6 @@ export async function createSessionHandler(
 export async function refreshTokenHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const refreshToken = req.cookies.refreshToken
-    const isAccessTokenExist = req.cookies.accessToken
-
-    if (isAccessTokenExist) {
-      return next(new AppError("You are already logged in", 401))
-    }
 
     if (!refreshToken) {
       return next(new AppError("Could not find refresh token", 401))
@@ -69,8 +69,12 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
       return next(new AppError("Could not find user for this refresh token", 401))
     }
 
+    const newRefreshToken = await signRefreshToken(user._id.toString())
+    await updateSessionById(decoded.sessionId, false)
+
     const accessToken = signAccessToken(user)
     setAccessToken(accessToken, res)
+    setRefreshToken(newRefreshToken, res)
     successResponse(res, "Refresh token success")
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
