@@ -6,6 +6,7 @@ import {
   resetPasswordHandler,
   meHandler,
   logoutHandler,
+  updateMeHandler,
 } from "../../controllers/user.controller"
 import { validateResource } from "../../middlewares/validateResource"
 import authenticate from "../../middlewares/authenticate"
@@ -14,6 +15,7 @@ import {
   verifyUserSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateMeSchema,
 } from "../../schema/user.schema"
 
 const router = Router()
@@ -23,6 +25,7 @@ router.post("/verify", validateResource(verifyUserSchema), verifyUserHandler)
 router.post("/forgotpassword", validateResource(forgotPasswordSchema), forgotPasswordHandler)
 router.post("/resetpassword", validateResource(resetPasswordSchema), resetPasswordHandler)
 router.get("/me", authenticate, meHandler)
+router.patch("/me/update", validateResource(updateMeSchema), authenticate, updateMeHandler)
 router.post("/logout", authenticate, logoutHandler)
 
 export default router

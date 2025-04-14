@@ -236,8 +236,20 @@ export async function updateMeHandler(
 ) {
   try {
     const { firstName, lastName, email } = req.body
-    const user = await updateMe(req.user?._id as string, { firstName, lastName, email })
-    successResponse(res, "Update me success", user)
+
+    const updatedUser = await updateMe(req.user?._id as string, { firstName, lastName, email })
+    if (!updatedUser) {
+      return next(new AppError("Error updating user", 500))
+    }
+    const userResponse = {
+      _id: updatedUser._id,
+      email: updatedUser.email,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      verified: updatedUser.verified,
+      // Tambahkan field lain yang ingin Anda tampilkan
+    }
+    successResponse(res, "Update me success", userResponse)
   } catch (error: any) {
     return next(new AppError(error.message, error.statusCode))
   }
