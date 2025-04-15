@@ -1,20 +1,21 @@
 import { DocumentType } from "@typegoose/typegoose"
+import mongoose from "mongoose"
 import { omit } from "lodash"
 import { User } from "../models/User"
 import { signJwt } from "../utils/jwt"
 import SessionModel from "../models/Session"
 
-export async function createSession(userId: string) {
-  return SessionModel.create({ userId: userId })
+export async function deleteSession(id: string, session?: mongoose.ClientSession) {
+  return SessionModel.deleteOne({ _id: id }).session(session || null)
+}
+export async function createSession(userId: string, session?: mongoose.ClientSession) {
+  const newSession = new SessionModel({ userId })
+  return newSession.save({ session })
 }
 
-export async function deleteSession(id: string) {
-  return SessionModel.deleteOne({ _id: id })
-}
-
-export async function signRefreshToken(userId: string) {
-  const session = await createSession(userId)
-  const refreshToken = signJwt({ sessionId: session._id }, "refreshTokenPrivateKey", {
+export async function signRefreshToken(userId: string, session?: mongoose.ClientSession) {
+  const newSession = await createSession(userId, session)
+  const refreshToken = signJwt({ sessionId: newSession._id }, "refreshTokenPrivateKey", {
     expiresIn: "1y",
   })
   return refreshToken

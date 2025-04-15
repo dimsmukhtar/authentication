@@ -70,19 +70,37 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
       return next(new AppError("Could not find user for this refresh token", 401))
     }
 
-    const transaction = await mongoose.startSession()
+    const newRefreshToken = await transactionForRefreshToken(
+      session._id.toString(),
+      user._id.toString()
+    )
+    if (newRefreshToken) {
+      const accessToken = signAccessToken(user)
+      setAccessToken(accessToken, res)
+      setRefreshToken(newRefreshToken, res)
+      successResponse(res, "Refresh token success")
+    }
+  } catch (error: any) {
+    return next(new AppError(error.message, error.statusCode))
+  }
+}
+
+async function transactionForRefreshToken(sessionId: string, userId: string) {
+  const transaction = await mongoose.startSession()
+
+  try {
     transaction.startTransaction()
 
-    await deleteSession(session._id.toString())
-    const newRefreshToken = await signRefreshToken(user._id.toString())
+    await deleteSession(sessionId)
+    const newRefreshToken = await signRefreshToken(userId)
 
     await transaction.commitTransaction()
 
-    const accessToken = signAccessToken(user)
-    setAccessToken(accessToken, res)
-    setRefreshToken(newRefreshToken, res)
-    successResponse(res, "Refresh token success")
-  } catch (error: any) {
-    return next(new AppError(error.message, error.statusCode))
+    return newRefreshToken
+  } catch (error) {
+    await transaction.abortTransaction()
+    throw new AppError("Transaction deleting old session and creating session error:", 500)
+  } finally {
+    transaction.endSession()
   }
 }
