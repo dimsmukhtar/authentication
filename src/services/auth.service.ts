@@ -8,8 +8,8 @@ export async function createSession(userId: string) {
   return SessionModel.create({ userId: userId })
 }
 
-export async function updateSessionById(id: string, valid: boolean) {
-  return SessionModel.findByIdAndUpdate(id, { valid }, { new: true })
+export async function deleteSession(id: string) {
+  return SessionModel.deleteOne({ _id: id })
 }
 
 export async function signRefreshToken(userId: string) {

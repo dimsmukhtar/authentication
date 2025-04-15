@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express"
+import mongoose from "mongoose"
 import { CreateSessionInput } from "../schema/auth.schema"
 import AppError from "../utils/appError"
 import { findByEmail, findById } from "../services/user.service"
@@ -6,7 +7,7 @@ import {
   signAccessToken,
   signRefreshToken,
   findSessionById,
-  updateSessionById,
+  deleteSession,
 } from "../services/auth.service"
 import { successResponse } from "../middlewares/successResponse"
 import { setAccessToken, setRefreshToken } from "../utils/setCookies"
@@ -69,8 +70,13 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
       return next(new AppError("Could not find user for this refresh token", 401))
     }
 
+    const transaction = await mongoose.startSession()
+    transaction.startTransaction()
+
+    await deleteSession(session._id.toString())
     const newRefreshToken = await signRefreshToken(user._id.toString())
-    await updateSessionById(decoded.sessionId, false)
+
+    await transaction.commitTransaction()
 
     const accessToken = signAccessToken(user)
     setAccessToken(accessToken, res)
