@@ -35,7 +35,7 @@ export async function createSessionHandler(
     }
 
     const accessToken = signAccessToken(user)
-    const refreshToken = await signRefreshToken(user._id.toString())
+    const refreshToken = await signRefreshToken(user._id.toString(), undefined)
     setAccessToken(accessToken, res)
     setRefreshToken(refreshToken, res)
 
@@ -60,7 +60,7 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
     }
 
     const session = await findSessionById(decoded.sessionId)
-    if (!session || !session.valid) {
+    if (!session) {
       return next(new AppError("Could not refresh access token", 401))
     }
 
@@ -85,22 +85,22 @@ export async function refreshTokenHandler(req: Request, res: Response, next: Nex
   }
 }
 
-async function transactionForRefreshToken(sessionId: string, userId: string) {
-  const transaction = await mongoose.startSession()
+async function transactionForRefreshToken(soldSessionId: string, userId: string) {
+  const transactionSession = await mongoose.startSession()
 
   try {
-    transaction.startTransaction()
+    transactionSession.startTransaction()
 
-    await deleteSession(sessionId)
-    const newRefreshToken = await signRefreshToken(userId)
+    await deleteSession(soldSessionId, transactionSession)
+    const newRefreshToken = await signRefreshToken(userId, transactionSession)
 
-    await transaction.commitTransaction()
+    await transactionSession.commitTransaction()
 
     return newRefreshToken
-  } catch (error) {
-    await transaction.abortTransaction()
-    throw new AppError("Transaction deleting old session and creating session error:", 500)
+  } catch (error: any) {
+    await transactionSession.abortTransaction()
+    throw new AppError(`Refresh token rotation failed: ${error.message}`, 500)
   } finally {
-    transaction.endSession()
+    transactionSession.endSession()
   }
 }
